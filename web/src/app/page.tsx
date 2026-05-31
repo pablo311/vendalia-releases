@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Search, MapPin, TrendingUp, Lock, PlusCircle, Compass, ChevronRight } from 'lucide-react'
@@ -225,6 +226,11 @@ export default async function HomePage({
 }) {
   const params = await searchParams
   const { userName, featured, recent, user } = await getPageData(params)
+
+  // Unauthenticated visitors → marketing landing page
+  if (!user) {
+    redirect('/landing')
+  }
   const initial = userName?.[0]?.toUpperCase() ?? 'V'
 
   return (
