@@ -31,6 +31,7 @@ export function ChatWindow({ inquiryId, currentUserId, otherName }: ChatWindowPr
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [sendError, setSendError] = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -110,14 +111,20 @@ export function ChatWindow({ inquiryId, currentUserId, otherName }: ChatWindowPr
     if (!text || sending) return
 
     setSending(true)
+    setSendError(null)
     setInput('')
 
     const supabase = createClient()
-    await supabase.from('chat_messages').insert({
+    const { error } = await supabase.from('chat_messages').insert({
       inquiry_id: inquiryId,
       sender_id: currentUserId,
       content: text,
     })
+
+    if (error) {
+      setSendError('No se pudo enviar el mensaje. Intentá de nuevo.')
+      setInput(text) // restore text so user doesn't lose it
+    }
 
     setSending(false)
     inputRef.current?.focus()
@@ -181,6 +188,13 @@ export function ChatWindow({ inquiryId, currentUserId, otherName }: ChatWindowPr
         })}
         <div ref={bottomRef} />
       </div>
+
+      {/* Send error */}
+      {sendError && (
+        <p className="px-4 py-2 text-xs text-red-500 bg-red-50 dark:bg-red-950/30 border-t border-red-100 dark:border-red-900/50">
+          {sendError}
+        </p>
+      )}
 
       {/* Input */}
       <div className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">

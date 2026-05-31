@@ -34,7 +34,7 @@ export function FeedFilters() {
           params.delete(key)
         }
       })
-      router.push(`/?${params.toString()}`)
+      router.push(`/listings?${params.toString()}`)
     },
     [router, searchParams]
   )

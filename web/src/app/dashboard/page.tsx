@@ -57,12 +57,24 @@ export default async function DashboardPage() {
         .limit(10)
 
   // Métricas
-  const activeListings = (listings ?? []).filter((l: any) => l.status === 'active').length
-  const soldListings   = (listings ?? []).filter((l: any) => l.status === 'sold').length
-  const unreadCount    = (inquiries ?? []).filter((i: any) => !i.is_read).length
+  const activeListings = (listings ?? []).filter((l: Listing) => l.status === 'active').length
+  const soldListings   = (listings ?? []).filter((l: Listing) => l.status === 'sold').length
   const totalValue     = (listings ?? [])
-    .filter((l: any) => l.status === 'active')
-    .reduce((sum: number, l: any) => sum + (l.price ?? 0), 0)
+    .filter((l: Listing) => l.status === 'active')
+    .reduce((sum: number, l: Listing) => sum + (l.price ?? 0), 0)
+
+  // Mensajes no leídos: mensajes en chat de otros hacia este usuario
+  const inquiryIds = (inquiries ?? []).map((i: { id: string }) => i.id)
+  let unreadCount = 0
+  if (inquiryIds.length > 0) {
+    const { count } = await supabase
+      .from('chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .in('inquiry_id', inquiryIds)
+      .eq('is_read', false)
+      .neq('sender_id', user.id)
+    unreadCount = count ?? 0
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24 sm:pb-10">

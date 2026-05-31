@@ -1,14 +1,17 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { MapPin, Lock, TrendingUp, ChevronRight, Search } from 'lucide-react'
+import { MapPin, Lock, TrendingUp, ChevronRight, Search, ChevronLeft } from 'lucide-react'
 import { CategoryFilters } from '@/components/home/category-filters'
 import { CATEGORY_LABELS, type Listing } from '@/lib/types'
+
+const PAGE_SIZE = 20
 
 interface SearchParams {
   q?: string
   category?: string
   price?: string
+  page?: string
 }
 
 function formatCurrency(amount: number) {
@@ -19,19 +22,27 @@ function formatCurrency(amount: number) {
   }).format(amount)
 }
 
-async function getListings(searchParams: SearchParams): Promise<Listing[]> {
+async function getListings(searchParams: SearchParams): Promise<{ listings: Listing[]; total: number }> {
   const supabase = await createClient()
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
 
   let query = supabase
     .from('listings')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('status', 'active')
     .order('created_at', { ascending: false })
+    .range(from, to)
 
   if (searchParams.q) {
-    query = query.or(
-      `title.ilike.%${searchParams.q}%,description.ilike.%${searchParams.q}%,location.ilike.%${searchParams.q}%`
-    )
+    // Sanitize: remove PostgREST special chars to prevent filter injection
+    const safe = searchParams.q.replace(/[%_,."'\\]/g, ' ').trim().substring(0, 100)
+    if (safe) {
+      query = query.or(
+        `title.ilike.%${safe}%,description.ilike.%${safe}%,location.ilike.%${safe}%`
+      )
+    }
   }
   if (searchParams.category && searchParams.category !== 'all') {
     query = query.eq('category', searchParams.category)
@@ -41,8 +52,8 @@ async function getListings(searchParams: SearchParams): Promise<Listing[]> {
     query = query.gte('price', min).lte('price', max)
   }
 
-  const { data } = await query
-  return (data as Listing[]) ?? []
+  const { data, count } = await query
+  return { listings: (data as Listing[]) ?? [], total: count ?? 0 }
 }
 
 function ListingRow({ listing }: { listing: Listing }) {
@@ -88,13 +99,25 @@ function ListingRow({ listing }: { listing: Listing }) {
   )
 }
 
+function buildPageUrl(params: SearchParams, page: number): string {
+  const sp = new URLSearchParams()
+  if (params.q) sp.set('q', params.q)
+  if (params.category && params.category !== 'all') sp.set('category', params.category)
+  if (params.price && params.price !== 'all') sp.set('price', params.price)
+  if (page > 1) sp.set('page', String(page))
+  const qs = sp.toString()
+  return `/listings${qs ? `?${qs}` : ''}`
+}
+
 export default async function ListingsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>
 }) {
   const params = await searchParams
-  const listings = await getListings(params)
+  const currentPage = Math.max(1, parseInt(params.page ?? '1', 10))
+  const { listings, total } = await getListings(params)
+  const totalPages = Math.ceil(total / PAGE_SIZE)
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24 sm:pb-10">
@@ -122,7 +145,8 @@ export default async function ListingsPage({
 
       <div className="px-5 mt-5">
         <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
-          {listings.length} {listings.length === 1 ? 'resultado' : 'resultados'}
+          {total} {total === 1 ? 'resultado' : 'resultados'}
+          {totalPages > 1 && ` · Página ${currentPage} de ${totalPages}`}
         </p>
         {listings.length === 0 ? (
           <div className="text-center py-16 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
@@ -135,6 +159,44 @@ export default async function ListingsPage({
             {listings.map((listing) => (
               <ListingRow key={listing.id} listing={listing} />
             ))}
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-2 mt-8">
+            {currentPage > 1 ? (
+              <Link
+                href={buildPageUrl(params, currentPage - 1)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+                Anterior
+              </Link>
+            ) : (
+              <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+                Anterior
+              </span>
+            )}
+
+            <span className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+              {currentPage} / {totalPages}
+            </span>
+
+            {currentPage < totalPages ? (
+              <Link
+                href={buildPageUrl(params, currentPage + 1)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+              </Link>
+            ) : (
+              <span className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-100 dark:border-gray-800 text-sm font-medium text-gray-300 dark:text-gray-600 cursor-not-allowed">
+                Siguiente
+                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { LandingHeader } from '@/components/landing/landing-header'
 import { VendaliaLogo } from '@/components/vendalia-logo'
+import { createClient } from '@/lib/supabase/server'
 
 // ─── Mock listing data ────────────────────────────────────────────────────────
 const FEATURED_LISTINGS = [
@@ -71,12 +72,40 @@ const VALUE_PROPS = [
   },
 ]
 
-const TRUST_STATS = [
-  { value: '127+', label: 'Negocios listados' },
-  { value: '$47M+', label: 'En transacciones' },
-  { value: '340+', label: 'Inversores verificados' },
-  { value: '98%', label: 'Confidencialidad' },
-]
+async function getTrustStats() {
+  try {
+    const supabase = await createClient()
+    const [listingsRes, investorsRes, totalValueRes] = await Promise.all([
+      supabase.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'investor'),
+      supabase.from('listings').select('price').eq('status', 'active'),
+    ])
+    const listingsCount = listingsRes.count ?? 0
+    const investorsCount = investorsRes.count ?? 0
+    const totalValue = (totalValueRes.data ?? []).reduce(
+      (sum: number, r: { price: number }) => sum + (r.price ?? 0),
+      0
+    )
+    const formatValue = (v: number) => {
+      if (v >= 1_000_000) return `$${Math.floor(v / 1_000_000)}M+`
+      if (v >= 1_000) return `$${Math.floor(v / 1_000)}K+`
+      return `$${v}+`
+    }
+    return [
+      { value: `${listingsCount}+`, label: 'Negocios listados' },
+      { value: formatValue(totalValue), label: 'En transacciones' },
+      { value: `${investorsCount}+`, label: 'Inversores verificados' },
+      { value: '98%', label: 'Confidencialidad' },
+    ]
+  } catch {
+    return [
+      { value: '100+', label: 'Negocios listados' },
+      { value: '$10M+', label: 'En transacciones' },
+      { value: '200+', label: 'Inversores verificados' },
+      { value: '98%', label: 'Confidencialidad' },
+    ]
+  }
+}
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
@@ -186,7 +215,8 @@ function ListingCard({
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function LandingPage() {
+export default async function LandingPage() {
+  const trustStats = await getTrustStats()
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       <LandingHeader />
@@ -404,7 +434,7 @@ export default function LandingPage() {
       <section className="border-y border-gray-100 bg-gray-50/60 py-10">
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {TRUST_STATS.map(({ value, label }) => (
+            {trustStats.map(({ value, label }) => (
               <div key={label} className="text-center">
                 <p
                   className="text-3xl font-extrabold font-heading mb-1"

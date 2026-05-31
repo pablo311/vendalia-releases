@@ -5,7 +5,7 @@ export const metadata = { title: 'Blog — Vendalia' }
 
 const POSTS = [
   {
-    slug: '#',
+    slug: '/blog/como-valorar-tu-negocio',
     category: 'M&A',
     title: 'Cómo valorar tu negocio antes de venderlo',
     excerpt: 'Los 5 métodos más usados para calcular el valor de una empresa pequeña o mediana en Paraguay.',
@@ -13,7 +13,7 @@ const POSTS = [
     readTime: '5 min',
   },
   {
-    slug: '#',
+    slug: '/blog/que-revisar-antes-de-comprar-franquicia',
     category: 'Inversión',
     title: 'Qué revisar antes de comprar una franquicia',
     excerpt: 'Due diligence básico para inversores: contratos, royalties, exclusividad territorial y red de soporte.',
@@ -21,7 +21,7 @@ const POSTS = [
     readTime: '7 min',
   },
   {
-    slug: '#',
+    slug: '/blog/como-publicar-en-vendalia',
     category: 'Guía',
     title: 'Cómo publicar tu negocio en Vendalia',
     excerpt: 'Paso a paso para crear un anuncio efectivo: fotos, descripción, precio y confidencialidad.',

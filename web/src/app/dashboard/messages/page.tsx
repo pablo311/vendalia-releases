@@ -3,6 +3,21 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { MessageCircle, ChevronRight, ArrowLeft } from 'lucide-react'
 
+type ConvoParticipant = { id: string; full_name: string | null; email: string | null } | null
+type ConvoListing = { id: string; title: string; is_confidential: boolean; category: string } | null
+type MsgRow = { id: string; inquiry_id: string; content: string; created_at: string; sender_id: string; is_read: boolean }
+type EnrichedInquiry = {
+  id: string
+  message: string
+  created_at: string
+  listing_id: string
+  listings: ConvoListing
+  sender: ConvoParticipant
+  receiver: ConvoParticipant
+  lastMsg: MsgRow | null
+  unread: number
+}
+
 export default async function MessagesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -28,27 +43,33 @@ export default async function MessagesPage() {
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false })
 
-  // Para cada inquiry, traer el último mensaje del chat y contar no leídos
-  const enriched = await Promise.all(
-    (inquiries ?? []).map(async (inq: any) => {
-      const { data: lastMsg } = await supabase
+  // Batch: una sola query para todos los mensajes de todas las conversaciones
+  const inquiryIds = (inquiries ?? []).map((inq: { id: string }) => inq.id)
+
+  const { data: allMessages } = inquiryIds.length > 0
+    ? await supabase
         .from('chat_messages')
-        .select('content, created_at, sender_id')
-        .eq('inquiry_id', inq.id)
+        .select('id, inquiry_id, content, created_at, sender_id, is_read')
+        .in('inquiry_id', inquiryIds)
         .order('created_at', { ascending: false })
-        .limit(1)
-        .single()
+    : { data: [] }
 
-      const { count: unread } = await supabase
-        .from('chat_messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('inquiry_id', inq.id)
-        .eq('is_read', false)
-        .neq('sender_id', user.id)
+  // Agrupar en memoria: último mensaje y conteo de no leídos por inquiry
+  const lastMsgMap: Record<string, MsgRow> = {}
+  const unreadMap: Record<string, number> = {}
 
-      return { ...inq, lastMsg, unread: unread ?? 0 }
-    })
-  )
+  for (const msg of (allMessages ?? []) as MsgRow[]) {
+    if (!lastMsgMap[msg.inquiry_id]) lastMsgMap[msg.inquiry_id] = msg
+    if (!msg.is_read && msg.sender_id !== user.id) {
+      unreadMap[msg.inquiry_id] = (unreadMap[msg.inquiry_id] ?? 0) + 1
+    }
+  }
+
+  const enriched = ((inquiries ?? []) as unknown as EnrichedInquiry[]).map((inq) => ({
+    ...inq,
+    lastMsg: lastMsgMap[inq.id] ?? null,
+    unread: unreadMap[inq.id] ?? 0,
+  }))
 
   // Ordenar por actividad más reciente
   enriched.sort((a, b) => {
@@ -79,7 +100,7 @@ export default async function MessagesPage() {
             </p>
           </div>
         ) : (
-          enriched.map((inq: any) => {
+          enriched.map((inq: EnrichedInquiry) => {
             const other = inq.sender?.id === user.id ? inq.receiver : inq.sender
             const listingTitle = inq.listings?.is_confidential ? 'Negocio confidencial' : inq.listings?.title
             const lastText = inq.lastMsg?.content ?? inq.message
