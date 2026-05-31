@@ -10,7 +10,9 @@ const FILTER_CATEGORIES = [
   { value: 'retail', label: 'Retail' },
   { value: 'servicios', label: 'Servicios' },
   { value: 'salud', label: 'Salud' },
+  { value: 'educacion', label: 'Educación' },
   { value: 'manufactura', label: 'Manufactura' },
+  { value: 'otro', label: 'Otro' },
 ]
 
 interface CategoryFiltersProps {
