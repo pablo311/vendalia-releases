@@ -7,10 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import { CATEGORY_LABELS, type Listing, type Profile } from '@/lib/types'
 import { PlusCircle, TrendingUp, Lock } from 'lucide-react-native'
 
-const STATUS_LABEL: Record<string, string> = { active: 'Activo', paused: 'Pausado', sold: 'Vendido' }
+const STATUS_LABEL_KEY: Record<string, 'active' | 'paused' | 'sold'> = { active: 'active', paused: 'paused', sold: 'sold' }
 const STATUS_COLOR: Record<string, string> = { active: '#059669', paused: '#d97706', sold: '#6b7280' }
 
 function formatPrice(n: number) {
@@ -21,6 +22,7 @@ function formatPrice(n: number) {
 
 export default function DashboardScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [listings, setListings] = useState<Listing[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -62,8 +64,8 @@ export default function DashboardScreen() {
       <ScrollView showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.brand} />}>
         <View style={[styles.header, { backgroundColor: t.card, borderBottomColor: t.border }]}>
           <View>
-            <Text style={[styles.greeting, { color: t.text4 }]}>Mi Panel</Text>
-            <Text style={[styles.name, { color: t.text }]}>Hola, {firstName} 👋</Text>
+            <Text style={[styles.greeting, { color: t.text4 }]}>{i18n('myPanel')}</Text>
+            <Text style={[styles.name, { color: t.text }]}>{i18n('hello')}, {firstName} 👋</Text>
           </View>
           <View style={[styles.avatar, { backgroundColor: t.brand }]}>
             <Text style={styles.avatarText}>{firstName[0]?.toUpperCase()}</Text>
@@ -73,30 +75,30 @@ export default function DashboardScreen() {
         <View style={styles.statsRow}>
           <View style={[styles.statCard, { backgroundColor: t.card, borderColor: t.border }]}>
             <Text style={[styles.statNum, { color: t.text }]}>{activeListing}</Text>
-            <Text style={[styles.statLabel, { color: t.text4 }]}>{isSeller ? 'Anuncios activos' : 'Consultas enviadas'}</Text>
+            <Text style={[styles.statLabel, { color: t.text4 }]}>{isSeller ? i18n('activeListings') : i18n('sentInquiries')}</Text>
           </View>
           <TouchableOpacity
             style={[styles.statCard, { backgroundColor: unreadCount > 0 ? t.brandLight : t.card, borderColor: unreadCount > 0 ? t.brand : t.border }]}
             onPress={() => router.push('/(tabs)/messages')} activeOpacity={0.8}
           >
             <Text style={[styles.statNum, { color: unreadCount > 0 ? t.brand : t.text }]}>{unreadCount}</Text>
-            <Text style={[styles.statLabel, { color: unreadCount > 0 ? t.brand : t.text4 }]}>Mensajes nuevos</Text>
+            <Text style={[styles.statLabel, { color: unreadCount > 0 ? t.brand : t.text4 }]}>{i18n('newMessages')}</Text>
           </TouchableOpacity>
         </View>
 
         {isSeller && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: t.text }]}>Mis anuncios</Text>
-              <TouchableOpacity onPress={() => Alert.alert('Próximamente', 'Crear anuncios desde la app estará disponible pronto.')} activeOpacity={0.7}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>{i18n('myListings')}</Text>
+              <TouchableOpacity onPress={() => Alert.alert(i18n('comingSoon'), i18n('createFromApp'))} activeOpacity={0.7}>
                 <PlusCircle size={22} color={t.brand} strokeWidth={1.8} />
               </TouchableOpacity>
             </View>
             {listings.length === 0 ? (
               <View style={[styles.empty, { backgroundColor: t.card, borderColor: t.border }]}>
                 <TrendingUp size={36} color={t.border2} strokeWidth={1.5} />
-                <Text style={[styles.emptyText, { color: t.text4 }]}>Sin anuncios aún</Text>
-                <Text style={[styles.emptySubtext, { color: t.text4 }]}>Publicá desde la web</Text>
+                <Text style={[styles.emptyText, { color: t.text4 }]}>{i18n('noListingsYet')}</Text>
+                <Text style={[styles.emptySubtext, { color: t.text4 }]}>{i18n('publishFromWeb')}</Text>
               </View>
             ) : (
               listings.map((listing) => (
@@ -107,12 +109,12 @@ export default function DashboardScreen() {
                   </View>
                   <View style={styles.listingInfo}>
                     <Text style={[styles.listingTitle, { color: t.text }]} numberOfLines={1}>
-                      {listing.is_confidential ? `Negocio en ${CATEGORY_LABELS[listing.category]}` : listing.title}
+                      {listing.is_confidential ? `${i18n('confidentialBusiness')} ${CATEGORY_LABELS[listing.category]}` : listing.title}
                     </Text>
                     <Text style={[styles.listingPrice, { color: t.brand }]}>{formatPrice(listing.price)}</Text>
                   </View>
                   <View style={[styles.statusBadge, { backgroundColor: STATUS_COLOR[listing.status] + '22' }]}>
-                    <Text style={[styles.statusText, { color: STATUS_COLOR[listing.status] }]}>{STATUS_LABEL[listing.status]}</Text>
+                    <Text style={[styles.statusText, { color: STATUS_COLOR[listing.status] }]}>{i18n(STATUS_LABEL_KEY[listing.status])}</Text>
                   </View>
                 </TouchableOpacity>
               ))
@@ -125,8 +127,8 @@ export default function DashboardScreen() {
             <TouchableOpacity style={[styles.ctaCard, { backgroundColor: t.card, borderColor: t.border }]}
               onPress={() => router.push('/(tabs)')} activeOpacity={0.85}>
               <TrendingUp size={28} color={t.brand} strokeWidth={1.8} />
-              <Text style={[styles.ctaTitle, { color: t.text }]}>Explorar negocios</Text>
-              <Text style={[styles.ctaSubtitle, { color: t.text4 }]}>Encontrá oportunidades de inversión</Text>
+              <Text style={[styles.ctaTitle, { color: t.text }]}>{i18n('exploreBusinesses')}</Text>
+              <Text style={[styles.ctaSubtitle, { color: t.text4 }]}>{i18n('findOpportunities')}</Text>
             </TouchableOpacity>
           </View>
         )}

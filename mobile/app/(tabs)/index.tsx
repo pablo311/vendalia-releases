@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import { CATEGORY_LABELS, type Listing } from '@/lib/types'
 import {
   Search, MapPin, TrendingUp, Lock,
@@ -15,18 +16,18 @@ import {
 } from 'lucide-react-native'
 import type { LucideIcon } from 'lucide-react-native'
 
-interface Category { key: string; label: string; Icon: LucideIcon }
+interface Category { key: string; Icon: LucideIcon; labelKey: 'all' | 'gastronomy' | 'franchise' | 'technology' | 'retail' | 'services' | 'health' | 'education' | 'manufacturing' }
 
 const CATEGORIES: Category[] = [
-  { key: 'all',          label: 'Todos',       Icon: LayoutGrid },
-  { key: 'gastronomia',  label: 'Gastronomía', Icon: UtensilsCrossed },
-  { key: 'franquicia',   label: 'Franquicias', Icon: Store },
-  { key: 'tecnologia',   label: 'Tecnología',  Icon: Cpu },
-  { key: 'retail',       label: 'Retail',      Icon: ShoppingBag },
-  { key: 'servicios',    label: 'Servicios',   Icon: Briefcase },
-  { key: 'salud',        label: 'Salud',       Icon: HeartPulse },
-  { key: 'educacion',    label: 'Educación',   Icon: BookOpen },
-  { key: 'manufactura',  label: 'Manufactura', Icon: Factory },
+  { key: 'all',          Icon: LayoutGrid,      labelKey: 'all' },
+  { key: 'gastronomia',  Icon: UtensilsCrossed, labelKey: 'gastronomy' },
+  { key: 'franquicia',   Icon: Store,           labelKey: 'franchise' },
+  { key: 'tecnologia',   Icon: Cpu,             labelKey: 'technology' },
+  { key: 'retail',       Icon: ShoppingBag,     labelKey: 'retail' },
+  { key: 'servicios',    Icon: Briefcase,       labelKey: 'services' },
+  { key: 'salud',        Icon: HeartPulse,      labelKey: 'health' },
+  { key: 'educacion',    Icon: BookOpen,        labelKey: 'education' },
+  { key: 'manufactura',  Icon: Factory,         labelKey: 'manufacturing' },
 ]
 
 function formatPrice(n: number) {
@@ -37,6 +38,7 @@ function formatPrice(n: number) {
 
 export default function FeedScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,7 +59,7 @@ export default function FeedScreen() {
   const onRefresh = () => { setRefreshing(true); fetchListings() }
 
   const renderItem = ({ item }: { item: Listing }) => {
-    const title = item.is_confidential ? `Negocio en ${CATEGORY_LABELS[item.category]}` : item.title
+    const title = item.is_confidential ? `${i18n('confidentialBusiness')} ${CATEGORY_LABELS[item.category]}` : item.title
     const hasImage = !item.is_confidential && item.images.length > 0
 
     return (
@@ -85,7 +87,7 @@ export default function FeedScreen() {
           <View style={styles.cardLocation}>
             <MapPin size={11} color={t.text4} strokeWidth={1.5} />
             <Text style={[styles.cardLocationText, { color: t.text4 }]} numberOfLines={1}>
-              {item.is_confidential ? 'Confidencial' : item.location}
+              {item.is_confidential ? i18n('confidential') : item.location}
             </Text>
           </View>
           <Text style={[styles.cardPrice, { color: t.brand }]}>{formatPrice(item.price)}</Text>
@@ -98,14 +100,14 @@ export default function FeedScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: t.bg }]}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: t.card, borderBottomColor: t.border }]}>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Explorar</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>{i18n('explore')}</Text>
         <View style={[styles.searchRow, { backgroundColor: t.inputBg }]}>
           <Search size={16} color={t.text4} strokeWidth={2} />
           <TextInput
             style={[styles.searchInput, { color: t.text }]}
             value={search}
             onChangeText={setSearch}
-            placeholder="Buscar negocios..."
+            placeholder={i18n('search')}
             placeholderTextColor={t.text4}
             returnKeyType="search"
             onSubmitEditing={fetchListings}
@@ -120,7 +122,7 @@ export default function FeedScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContent}
         >
-          {CATEGORIES.map(({ key, label, Icon }) => {
+          {CATEGORIES.map(({ key, Icon, labelKey }) => {
             const active = category === key
             return (
               <TouchableOpacity
@@ -133,7 +135,7 @@ export default function FeedScreen() {
                 activeOpacity={0.75}
               >
                 <Icon size={14} color={active ? '#fff' : t.text3} strokeWidth={1.8} />
-                <Text style={[styles.filterText, { color: active ? '#fff' : t.text3 }]}>{label}</Text>
+                <Text style={[styles.filterText, { color: active ? '#fff' : t.text3 }]}>{i18n(labelKey)}</Text>
               </TouchableOpacity>
             )
           })}
@@ -158,7 +160,7 @@ export default function FeedScreen() {
           ListEmptyComponent={
             <View style={styles.empty}>
               <TrendingUp size={40} color={t.border2} strokeWidth={1.5} />
-              <Text style={[styles.emptyText, { color: t.text4 }]}>Sin listados disponibles</Text>
+              <Text style={[styles.emptyText, { color: t.text4 }]}>{i18n('noListings')}</Text>
             </View>
           }
         />

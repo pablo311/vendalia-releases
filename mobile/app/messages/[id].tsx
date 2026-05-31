@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import { ArrowLeft, Send } from 'lucide-react-native'
 import type { ChatMessage } from '@/lib/types'
 
@@ -21,6 +22,7 @@ function formatTime(dateStr: string) {
 
 export default function ChatScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const { id: inquiryId } = useLocalSearchParams<{ id: string }>()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -150,7 +152,7 @@ export default function ChatScreen() {
           onContentSizeChange={scrollToBottom}
           ListEmptyComponent={
             <View style={styles.emptyChat}>
-              <Text style={[styles.emptyChatText, { color: t.text4 }]}>Iniciá la conversación</Text>
+              <Text style={[styles.emptyChatText, { color: t.text4 }]}>{i18n('startConversation')}</Text>
             </View>
           }
         />
@@ -161,7 +163,7 @@ export default function ChatScreen() {
             style={[styles.input, { backgroundColor: t.inputBg, color: t.text }]}
             value={input}
             onChangeText={setInput}
-            placeholder="Escribí un mensaje..."
+            placeholder={i18n('writeMessage')}
             placeholderTextColor={t.text4}
             multiline
             returnKeyType="default"

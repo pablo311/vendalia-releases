@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
 import { ThemeProvider } from '@/components/theme-provider'
+import { LanguageProvider } from '@/components/language-provider'
 
 const geist = Geist({
   variable: '--font-sans',
@@ -43,6 +44,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-white dark:bg-gray-900">
+        <LanguageProvider>
         <ThemeProvider>
           {!isStandalone && (
             <div className="hidden sm:block">
@@ -58,6 +60,7 @@ export default async function RootLayout({
             </footer>
           )}
         </ThemeProvider>
+        </LanguageProvider>
       </body>
     </html>
   )

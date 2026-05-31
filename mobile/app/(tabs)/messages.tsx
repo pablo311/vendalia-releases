@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import { MessageCircle } from 'lucide-react-native'
 
 interface ConversationItem {
@@ -16,6 +17,7 @@ interface ConversationItem {
 
 export default function MessagesScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const [conversations, setConversations] = useState<ConversationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -64,8 +66,8 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: t.bg }]}>
       <View style={[styles.header, { backgroundColor: t.card, borderBottomColor: t.border }]}>
-        <Text style={[styles.headerTitle, { color: t.text }]}>Mensajes</Text>
-        <Text style={[styles.headerSub, { color: t.text4 }]}>{conversations.length} conversaciones</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>{i18n('messages')}</Text>
+        <Text style={[styles.headerSub, { color: t.text4 }]}>{conversations.length} {i18n('conversations')}</Text>
       </View>
 
       <FlatList
@@ -102,7 +104,7 @@ export default function MessagesScreen() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <MessageCircle size={44} color={t.border2} strokeWidth={1.5} />
-            <Text style={[styles.emptyText, { color: t.text4 }]}>Sin conversaciones aún</Text>
+            <Text style={[styles.emptyText, { color: t.text4 }]}>{i18n('noConversations')}</Text>
           </View>
         }
       />

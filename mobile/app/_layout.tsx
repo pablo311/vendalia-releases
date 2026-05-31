@@ -3,6 +3,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { supabase } from '@/lib/supabase'
 import { ThemeProvider, useTheme } from '@/lib/ThemeContext'
+import { LanguageProvider } from '@/lib/LanguageContext'
 import type { Session } from '@supabase/supabase-js'
 
 function RootLayoutInner() {
@@ -42,8 +43,10 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <RootLayoutInner />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <RootLayoutInner />
+      </ThemeProvider>
+    </LanguageProvider>
   )
 }

@@ -26,3 +26,4 @@ Thumbs.db
 *.mobileprovision
 *.orig.*
 web-build/
+.gstack/

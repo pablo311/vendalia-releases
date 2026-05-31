@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { UserMenu } from '@/components/auth/user-menu'
-import { Button } from '@/components/ui/button'
 import { VendaliaLogo } from '@/components/vendalia-logo'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { LanguageToggle } from '@/components/language-toggle'
+import { NavLinks, NavAuthButtons } from '@/components/nav-links'
 
 export async function Navbar() {
   const supabase = await createClient()
@@ -28,16 +29,10 @@ export async function Navbar() {
             <VendaliaLogo height={30} />
           </Link>
 
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors cursor-pointer hidden sm:block">
-              Explorar
-            </Link>
-            <Link href="/listings/new" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors cursor-pointer hidden sm:block">
-              Vender
-            </Link>
-
+          <div className="flex items-center gap-3">
+            <NavLinks />
+            <LanguageToggle />
             <ThemeToggle />
-
             {user ? (
               <UserMenu
                 fullName={profile?.full_name ?? null}
@@ -45,16 +40,7 @@ export async function Navbar() {
                 role={profile?.role ?? 'investor'}
               />
             ) : (
-              <>
-                <Link href="/auth/login">
-                  <Button variant="outline" size="sm" className="cursor-pointer">Ingresar</Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button size="sm" className="vendalia-gradient border-0 text-white cursor-pointer hover:opacity-90 transition-opacity">
-                    Registrarse
-                  </Button>
-                </Link>
-              </>
+              <NavAuthButtons />
             )}
           </div>
         </div>

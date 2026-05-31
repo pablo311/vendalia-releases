@@ -7,11 +7,13 @@ import { router } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 
 WebBrowser.maybeCompleteAuthSession()
 
 export default function RegisterScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
 
   const [role, setRole] = useState<'investor' | 'seller'>('investor')
   const [fullName, setFullName] = useState('')
@@ -21,8 +23,8 @@ export default function RegisterScreen() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   async function handleRegister() {
-    if (!fullName || !email || !password) { Alert.alert('Completá todos los campos'); return }
-    if (password.length < 6) { Alert.alert('Contraseña muy corta', 'Mínimo 6 caracteres'); return }
+    if (!fullName || !email || !password) { Alert.alert(i18n('fillAllFields')); return }
+    if (password.length < 6) { Alert.alert(i18n('shortPassword'), i18n('minPassword')); return }
     setLoading(true)
     const { error } = await supabase.auth.signUp({
       email: email.trim(), password,
@@ -44,7 +46,7 @@ export default function RegisterScreen() {
       provider: 'google',
       options: { redirectTo, skipBrowserRedirect: true },
     })
-    if (error || !data.url) { setGoogleLoading(false); Alert.alert('Error', 'No se pudo iniciar Google.'); return }
+    if (error || !data.url) { setGoogleLoading(false); Alert.alert('Error', i18n('googleError')); return }
     const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
     setGoogleLoading(false)
     if (result.type === 'success' && result.url) {
@@ -72,10 +74,9 @@ export default function RegisterScreen() {
           <Text style={[styles.logoText, { color: t.text }]}>Vendalia</Text>
         </View>
 
-        <Text style={[styles.title, { color: t.text }]}>Crear cuenta</Text>
-        <Text style={[styles.subtitle, { color: t.text3 }]}>Elegí tu rol para continuar</Text>
+        <Text style={[styles.title, { color: t.text }]}>{i18n('createAccount')}</Text>
+        <Text style={[styles.subtitle, { color: t.text3 }]}>{i18n('chooseRole')}</Text>
 
-        {/* Role selector */}
         <View style={styles.roleRow}>
           {(['investor', 'seller'] as const).map((r) => (
             <TouchableOpacity
@@ -86,33 +87,32 @@ export default function RegisterScreen() {
             >
               <Text style={styles.roleEmoji}>{r === 'investor' ? '📈' : '🏪'}</Text>
               <Text style={[styles.roleLabel, { color: role === r ? t.brand : t.text3 }]}>
-                {r === 'investor' ? 'Inversor' : 'Vendedor'}
+                {r === 'investor' ? i18n('investor') : i18n('seller')}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* Google button */}
         <TouchableOpacity
           style={[styles.googleBtn, { backgroundColor: t.card, borderColor: t.border2 }]}
           onPress={handleGoogle} disabled={googleLoading} activeOpacity={0.85}
         >
           {googleLoading
             ? <ActivityIndicator color={t.text3} size="small" />
-            : <><Text style={styles.googleIcon}>G</Text><Text style={[styles.googleText, { color: t.text }]}>Continuar con Google</Text></>}
+            : <><Text style={styles.googleIcon}>G</Text><Text style={[styles.googleText, { color: t.text }]}>{i18n('continueGoogle')}</Text></>}
         </TouchableOpacity>
 
         <View style={styles.divider}>
           <View style={[styles.dividerLine, { backgroundColor: t.border2 }]} />
-          <Text style={[styles.dividerText, { color: t.text4 }]}>o con email</Text>
+          <Text style={[styles.dividerText, { color: t.text4 }]}>{i18n('orEmail')}</Text>
           <View style={[styles.dividerLine, { backgroundColor: t.border2 }]} />
         </View>
 
         <View style={styles.form}>
           {[
-            { label: 'Nombre completo', value: fullName, onChange: setFullName, placeholder: 'Juan Pérez', caps: 'words' as const },
-            { label: 'Email', value: email, onChange: setEmail, placeholder: 'tu@email.com', caps: 'none' as const, keyboard: 'email-address' as const },
-            { label: 'Contraseña', value: password, onChange: setPassword, placeholder: 'Mínimo 6 caracteres', secure: true },
+            { label: i18n('fullName'), value: fullName, onChange: setFullName, placeholder: 'Juan Pérez', caps: 'words' as const },
+            { label: i18n('email'), value: email, onChange: setEmail, placeholder: 'tu@email.com', caps: 'none' as const, keyboard: 'email-address' as const },
+            { label: i18n('password'), value: password, onChange: setPassword, placeholder: i18n('minPassword'), secure: true },
           ].map(({ label, value, onChange, placeholder, caps, keyboard, secure }) => (
             <View key={label} style={styles.field}>
               <Text style={[styles.label, { color: t.text2 }]}>{label}</Text>
@@ -126,11 +126,11 @@ export default function RegisterScreen() {
           ))}
 
           <TouchableOpacity style={styles.btn} onPress={handleRegister} disabled={loading} activeOpacity={0.85}>
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Crear cuenta</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{i18n('createAccount')}</Text>}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.back()} style={styles.link}>
-            <Text style={[styles.linkText, { color: t.text3 }]}>¿Ya tenés cuenta? <Text style={styles.linkBold}>Ingresar</Text></Text>
+            <Text style={[styles.linkText, { color: t.text3 }]}>{i18n('alreadyAccount')} <Text style={styles.linkBold}>{i18n('login')}</Text></Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

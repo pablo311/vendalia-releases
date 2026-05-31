@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import { CATEGORY_LABELS, type Listing } from '@/lib/types'
 import { ArrowLeft, MapPin, Calendar, TrendingUp, Lock, Send } from 'lucide-react-native'
 
@@ -20,6 +21,7 @@ function formatPrice(n: number) {
 
 export default function ListingDetailScreen() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const { id } = useLocalSearchParams<{ id: string }>()
   const [listing, setListing] = useState<Listing | null>(null)
   const [sellerName, setSellerName] = useState('')
@@ -49,7 +51,7 @@ export default function ListingDetailScreen() {
   }, [id])
 
   async function sendInquiry() {
-    if (!message.trim()) { Alert.alert('Escribí un mensaje'); return }
+    if (!message.trim()) { Alert.alert(i18n('noMessage')); return }
     if (!currentUserId) { router.push('/(auth)/login'); return }
     if (!listing) return
     setSending(true)
@@ -60,11 +62,11 @@ export default function ListingDetailScreen() {
       .select('id').single()
 
     setSending(false)
-    if (error) { Alert.alert('Error', 'No se pudo enviar. Intentá de nuevo.'); return }
+    if (error) { Alert.alert('Error', i18n('sendError')); return }
     setInquirySent(true)
-    Alert.alert('¡Consulta enviada!', '¿Querés ir al chat?', [
+    Alert.alert(i18n('inquirySentTitle'), i18n('goToChat'), [
       { text: 'No' },
-      { text: 'Ir al chat', onPress: () => router.push(`/messages/${data.id}`) },
+      { text: i18n('goChat'), onPress: () => router.push(`/messages/${data.id}`) },
     ])
   }
 
@@ -72,11 +74,11 @@ export default function ListingDetailScreen() {
     return <View style={[styles.center, { backgroundColor: t.bg }]}><ActivityIndicator size="large" color={t.brand} /></View>
   }
   if (!listing) {
-    return <View style={[styles.center, { backgroundColor: t.bg }]}><Text style={{ color: t.text }}>Listado no encontrado</Text></View>
+    return <View style={[styles.center, { backgroundColor: t.bg }]}><Text style={{ color: t.text }}>{i18n('notFound')}</Text></View>
   }
 
   const isConfidential = listing.is_confidential
-  const title = isConfidential ? `Negocio en ${CATEGORY_LABELS[listing.category]}` : listing.title
+  const title = isConfidential ? `${i18n('confidentialBusiness')} ${CATEGORY_LABELS[listing.category]}` : listing.title
   const hasImages = !isConfidential && listing.images.length > 0
   const isMine = currentUserId === listing.user_id
 
@@ -128,7 +130,7 @@ export default function ListingDetailScreen() {
             <View style={styles.statsRow}>
               <View style={[styles.statCard, { backgroundColor: t.card, borderColor: t.border }]}>
                 <Text style={[styles.statValue, { color: t.text }]}>{formatPrice(listing.annual_revenue)}</Text>
-                <Text style={[styles.statLabel, { color: t.text4 }]}>Ingresos/año</Text>
+                <Text style={[styles.statLabel, { color: t.text4 }]}>{i18n('revenueYear')}</Text>
               </View>
             </View>
           )}
@@ -136,7 +138,7 @@ export default function ListingDetailScreen() {
           {/* Description */}
           {!isConfidential && (
             <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: t.text }]}>Descripción</Text>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>{i18n('description')}</Text>
               <Text style={[styles.description, { color: t.text2 }]}>{listing.description}</Text>
             </View>
           )}
@@ -148,19 +150,19 @@ export default function ListingDetailScreen() {
             </View>
             <View>
               <Text style={[styles.sellerName, { color: t.text }]}>{sellerName}</Text>
-              <Text style={[styles.sellerRole, { color: t.text4 }]}>Vendedor</Text>
+              <Text style={[styles.sellerRole, { color: t.text4 }]}>{i18n('seller')}</Text>
             </View>
           </View>
 
           {/* Inquiry form */}
           {!isMine && (
             <View style={[styles.inquiryBox, { backgroundColor: t.card, borderColor: t.border }]}>
-              <Text style={[styles.inquiryTitle, { color: t.text }]}>Enviar consulta</Text>
+              <Text style={[styles.inquiryTitle, { color: t.text }]}>{i18n('sendInquiry')}</Text>
               {inquirySent ? (
                 <View style={styles.sentBox}>
-                  <Text style={styles.sentText}>✓ Consulta enviada</Text>
+                  <Text style={styles.sentText}>{i18n('inquirySent')}</Text>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/messages')} activeOpacity={0.8}>
-                    <Text style={styles.sentLink}>Ver mensajes</Text>
+                    <Text style={styles.sentLink}>{i18n('viewMessages')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -169,7 +171,7 @@ export default function ListingDetailScreen() {
                     style={[styles.inquiryInput, { backgroundColor: t.bg, borderColor: t.border2, color: t.text }]}
                     value={message}
                     onChangeText={setMessage}
-                    placeholder="Hola, me interesa tu negocio..."
+                    placeholder={i18n('inquiryPlaceholder')}
                     placeholderTextColor={t.text4}
                     multiline
                     numberOfLines={3}
@@ -178,7 +180,7 @@ export default function ListingDetailScreen() {
                   <TouchableOpacity style={styles.sendBtn} onPress={sendInquiry} disabled={sending} activeOpacity={0.85}>
                     {sending
                       ? <ActivityIndicator color="#fff" size="small" />
-                      : <><Send size={16} color="#fff" strokeWidth={2} /><Text style={styles.sendBtnText}>Enviar consulta</Text></>}
+                      : <><Send size={16} color="#fff" strokeWidth={2} /><Text style={styles.sendBtnText}>{i18n('sendInquiry')}</Text></>}
                   </TouchableOpacity>
                 </>
               )}

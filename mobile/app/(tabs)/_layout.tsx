@@ -2,11 +2,13 @@ import { Tabs, Redirect } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
+import { useLanguage } from '@/lib/LanguageContext'
 import type { Session } from '@supabase/supabase-js'
 import { Home, MessageSquare, LayoutDashboard, User } from 'lucide-react-native'
 
 export default function TabsLayout() {
   const { t } = useTheme()
+  const { i18n } = useLanguage()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
@@ -35,10 +37,10 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Explorar', tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.8} /> }} />
-      <Tabs.Screen name="messages" options={{ title: 'Mensajes', tabBarIcon: ({ color, size }) => <MessageSquare size={size} color={color} strokeWidth={1.8} /> }} />
-      <Tabs.Screen name="dashboard" options={{ title: 'Mi Panel', tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} strokeWidth={1.8} /> }} />
-      <Tabs.Screen name="profile" options={{ title: 'Perfil', tabBarIcon: ({ color, size }) => <User size={size} color={color} strokeWidth={1.8} /> }} />
+      <Tabs.Screen name="index" options={{ title: i18n('explore'), tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={1.8} /> }} />
+      <Tabs.Screen name="messages" options={{ title: i18n('messages'), tabBarIcon: ({ color, size }) => <MessageSquare size={size} color={color} strokeWidth={1.8} /> }} />
+      <Tabs.Screen name="dashboard" options={{ title: i18n('myPanel'), tabBarIcon: ({ color, size }) => <LayoutDashboard size={size} color={color} strokeWidth={1.8} /> }} />
+      <Tabs.Screen name="profile" options={{ title: i18n('myProfile'), tabBarIcon: ({ color, size }) => <User size={size} color={color} strokeWidth={1.8} /> }} />
     </Tabs>
   )
 }
