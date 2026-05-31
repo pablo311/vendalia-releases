@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = 'Vendalia <notificaciones@vendalia.com>'
+const FROM = process.env.RESEND_FROM ?? 'Vendalia <onboarding@resend.dev>'
 
 export async function sendNewInquiryEmail({
   sellerEmail,
