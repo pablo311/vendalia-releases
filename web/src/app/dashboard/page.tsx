@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { deleteListing } from '@/app/actions/listings'
+import { deleteListing, updateListingStatus } from '@/app/actions/listings'
 import { CATEGORY_LABELS, type Listing } from '@/lib/types'
 import {
   Plus, Eye, Pencil, Trash2, MessageSquare, Lock,
   TrendingUp, Store, ChevronRight, User, BarChart3,
-  CheckCircle, Clock, PauseCircle
+  CheckCircle, Clock, PauseCircle, ShoppingBag
 } from 'lucide-react'
 
 function formatCurrency(amount: number) {
@@ -218,6 +218,30 @@ export default async function DashboardPage() {
                           className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer" title="Editar">
                           <Pencil className="h-4 w-4" strokeWidth={1.5} />
                         </Link>
+                        {listing.status !== 'sold' && (
+                          <form action={async () => { 'use server'; await updateListingStatus(listing.id, 'sold') }}>
+                            <button type="submit"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950 transition-colors cursor-pointer" title="Marcar como vendido">
+                              <ShoppingBag className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </form>
+                        )}
+                        {listing.status === 'active' && (
+                          <form action={async () => { 'use server'; await updateListingStatus(listing.id, 'paused') }}>
+                            <button type="submit"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors cursor-pointer" title="Pausar">
+                              <PauseCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </form>
+                        )}
+                        {listing.status === 'paused' && (
+                          <form action={async () => { 'use server'; await updateListingStatus(listing.id, 'active') }}>
+                            <button type="submit"
+                              className="p-1.5 rounded-lg text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-950 transition-colors cursor-pointer" title="Reactivar">
+                              <CheckCircle className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </form>
+                        )}
                         <form action={async () => { 'use server'; await deleteListing(listing.id) }}>
                           <button type="submit"
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors cursor-pointer" title="Eliminar">

@@ -7,9 +7,11 @@ import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
 import { InquiryForm } from '@/components/listings/inquiry-form'
 import { CATEGORY_LABELS, type Listing, type Profile } from '@/lib/types'
+import { agreeToNda } from '@/app/actions/listings'
+import type { Metadata } from 'next'
 import {
   MapPin, Lock, TrendingUp, Calendar, ArrowLeft,
-  DollarSign, BarChart3, User
+  DollarSign, BarChart3, User, ShieldCheck, FileText,
 } from 'lucide-react'
 
 function formatCurrency(amount: number) {
@@ -26,6 +28,92 @@ function formatDate(dateString: string) {
   })
 }
 
+// ─── SEO metadata ─────────────────────────────────────────────────────────────
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('title, description, category, price, is_confidential, images, location')
+    .eq('id', id)
+    .eq('status', 'active')
+    .single()
+
+  if (!listing) return { title: 'Negocio no encontrado — Vendalia' }
+
+  const category = CATEGORY_LABELS[listing.category as keyof typeof CATEGORY_LABELS] ?? listing.category
+  const title = listing.is_confidential
+    ? `Negocio en ${category} — Vendalia`
+    : `${listing.title} | ${category} en ${listing.location} — Vendalia`
+
+  const description = listing.is_confidential
+    ? `Negocio confidencial en venta. Categoría: ${category}. Precio: ${formatCurrency(listing.price)}.`
+    : listing.description.slice(0, 155)
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: listing.images?.[0] ? [{ url: listing.images[0] }] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: listing.images?.[0] ? [listing.images[0]] : [],
+    },
+  }
+}
+
+// ─── NDA wall ─────────────────────────────────────────────────────────────────
+function NdaWall({ listingId }: { listingId: string }) {
+  return (
+    <div className="rounded-2xl border border-purple-100 bg-purple-50/40 p-8 text-center">
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+        style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
+      >
+        <ShieldCheck className="h-7 w-7 text-white" strokeWidth={1.5} />
+      </div>
+      <h3 className="text-lg font-bold text-gray-900 font-heading mb-2">
+        Contenido confidencial
+      </h3>
+      <p className="text-sm text-gray-500 mb-6 leading-relaxed max-w-xs mx-auto">
+        Para ver el nombre, ubicación exacta y descripción completa de este negocio, aceptá el acuerdo de confidencialidad.
+      </p>
+      <ul className="text-left text-sm text-gray-600 space-y-2 mb-7 max-w-xs mx-auto">
+        {[
+          'No compartiré esta información con terceros',
+          'No contactaré al vendedor fuera de la plataforma',
+          'Usaré la información solo para evaluar esta oportunidad',
+        ].map((item) => (
+          <li key={item} className="flex items-start gap-2">
+            <FileText className="h-4 w-4 text-purple-400 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
+            {item}
+          </li>
+        ))}
+      </ul>
+      <form action={async () => { 'use server'; await agreeToNda(listingId) }}>
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl text-white text-sm font-bold cursor-pointer hover:opacity-90 transition-opacity"
+          style={{ background: 'linear-gradient(to right, #a855f7, #22d3ee)' }}
+        >
+          Acepto el acuerdo de confidencialidad
+        </button>
+      </form>
+    </div>
+  )
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function ListingDetailPage({
   params,
 }: {
@@ -49,15 +137,30 @@ export default async function ListingDetailPage({
   const seller = listing.profiles as Profile
   const isOwner = user?.id === listing.user_id
 
-  const displayTitle = isConfidential ? `Negocio en ${CATEGORY_LABELS[listing.category as keyof typeof CATEGORY_LABELS]}` : listing.title
-  const displayLocation = isConfidential ? 'Ubicación confidencial' : listing.location
-  const displayImages = isConfidential ? [] : (listing.images ?? [])
+  // Check if user signed NDA for this listing
+  let hasNda = false
+  if (user && isConfidential && !isOwner) {
+    const { data: nda } = await supabase
+      .from('nda_agreements')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('listing_id', id)
+      .single()
+    hasNda = !!nda
+  }
+
+  // Reveal confidential data only to owner or NDA-signed users
+  const canSeeDetails = !isConfidential || isOwner || hasNda
+
+  const displayTitle = canSeeDetails ? listing.title : `Negocio en ${CATEGORY_LABELS[listing.category as keyof typeof CATEGORY_LABELS]}`
+  const displayLocation = canSeeDetails ? listing.location : 'Ubicación confidencial'
+  const displayImages = canSeeDetails ? (listing.images ?? []) : []
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
       <div className="mb-6">
-        <Link href="/" className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+        <Link href="/listings" className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
           <ArrowLeft className="h-4 w-4" />
           Volver al listado
         </Link>
@@ -88,10 +191,13 @@ export default async function ListingDetailPage({
               )}
             </div>
           ) : (
-            <div className="w-full h-56 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl flex items-center justify-center">
+            <div
+              className="w-full h-56 rounded-xl flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #f3e8ff 0%, #cffafe 100%)' }}
+            >
               {isConfidential
-                ? <Lock className="h-16 w-16 text-indigo-300" />
-                : <TrendingUp className="h-16 w-16 text-indigo-300" />}
+                ? <Lock className="h-16 w-16 text-purple-200" strokeWidth={1} />
+                : <TrendingUp className="h-16 w-16 text-purple-200" strokeWidth={1} />}
             </div>
           )}
 
@@ -100,7 +206,7 @@ export default async function ListingDetailPage({
             <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{displayTitle}</h1>
               {isConfidential && (
-                <Badge variant="secondary" className="bg-gray-100 text-gray-700 shrink-0">
+                <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200 shrink-0">
                   <Lock className="h-3 w-3 mr-1" /> Confidencial
                 </Badge>
               )}
@@ -118,17 +224,25 @@ export default async function ListingDetailPage({
 
           <Separator />
 
-          {/* Descripción */}
+          {/* Descripción o NDA wall */}
           <div>
             <h2 className="text-lg font-semibold dark:text-gray-100 mb-3">Descripción del negocio</h2>
-            {isConfidential ? (
-              <p className="text-gray-500 dark:text-gray-400 italic">
-                La descripción detallada se comparte tras el primer contacto con el vendedor.
-              </p>
-            ) : (
+            {canSeeDetails ? (
               <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                 {listing.description}
               </p>
+            ) : user ? (
+              <NdaWall listingId={id} />
+            ) : (
+              <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 text-center">
+                <Lock className="h-8 w-8 text-gray-300 mx-auto mb-3" strokeWidth={1.5} />
+                <p className="text-sm text-gray-500 mb-4">
+                  Iniciá sesión para ver la descripción completa y contactar al vendedor.
+                </p>
+                <Link href={`/auth/login?next=/listings/${id}`}>
+                  <Button size="sm">Iniciar sesión</Button>
+                </Link>
+              </div>
             )}
           </div>
 
@@ -137,10 +251,20 @@ export default async function ListingDetailPage({
             <Card>
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <DollarSign className="h-4 w-4 text-purple-500" />
                   <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Precio de venta</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-600">{formatCurrency(listing.price)}</p>
+                <p
+                  className="text-2xl font-bold"
+                  style={{
+                    background: 'linear-gradient(to right, #a855f7, #22d3ee)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                  }}
+                >
+                  {formatCurrency(listing.price)}
+                </p>
               </CardContent>
             </Card>
             {listing.annual_revenue && (
@@ -170,9 +294,12 @@ export default async function ListingDetailPage({
             </CardHeader>
             <CardContent>
               <p className="font-medium text-gray-900 dark:text-gray-100">
-                {isConfidential ? 'Vendedor anónimo' : (seller?.full_name ?? 'Vendedor')}
+                {canSeeDetails ? (seller?.full_name ?? 'Vendedor') : 'Vendedor anónimo'}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Vendedor verificado</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-green-500" strokeWidth={2} />
+                Vendedor verificado
+              </p>
             </CardContent>
           </Card>
 
@@ -183,25 +310,29 @@ export default async function ListingDetailPage({
             </CardHeader>
             <CardContent>
               {isOwner ? (
-                <div className="text-center py-4">
+                <div className="text-center py-4 space-y-2">
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Este es tu anuncio</p>
+                  <Link href={`/dashboard/edit/${listing.id}`}>
+                    <Button variant="outline" size="sm" className="w-full">Editar anuncio</Button>
+                  </Link>
                   <Link href="/dashboard">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Gestionar anuncio
-                    </Button>
+                    <Button variant="ghost" size="sm" className="w-full">Ir al panel</Button>
                   </Link>
                 </div>
               ) : user ? (
-                <InquiryForm
-                  listingId={listing.id}
-                  receiverId={listing.user_id}
-                />
+                canSeeDetails || !isConfidential ? (
+                  <InquiryForm listingId={listing.id} receiverId={listing.user_id} />
+                ) : (
+                  <div className="text-center py-3">
+                    <p className="text-sm text-gray-500">Aceptá el NDA para contactar al vendedor.</p>
+                  </div>
+                )
               ) : (
                 <div className="text-center py-4 space-y-3">
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     Iniciá sesión para contactar al vendedor
                   </p>
-                  <Link href="/auth/login">
+                  <Link href={`/auth/login?next=/listings/${id}`}>
                     <Button className="w-full" size="sm">Iniciar sesión</Button>
                   </Link>
                   <Link href="/auth/register">
