@@ -101,7 +101,7 @@ export function FeedFilters() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/listings')}
           title="Limpiar filtros"
         >
           <X className="h-4 w-4" />
