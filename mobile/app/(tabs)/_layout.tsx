@@ -5,10 +5,12 @@ import { useTheme } from '@/lib/ThemeContext'
 import { useLanguage } from '@/lib/LanguageContext'
 import type { Session } from '@supabase/supabase-js'
 import { Home, MessageSquare, LayoutDashboard, User } from 'lucide-react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 export default function TabsLayout() {
   const { t } = useTheme()
   const { i18n } = useLanguage()
+  const { bottom } = useSafeAreaInsets()
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   useEffect(() => {
@@ -30,9 +32,9 @@ export default function TabsLayout() {
           backgroundColor: t.card,
           borderTopColor: t.border,
           borderTopWidth: 1,
-          paddingBottom: 8,
+          paddingBottom: Math.max(bottom, 8),
           paddingTop: 8,
-          height: 64,
+          height: 64 + Math.max(bottom, 0),
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600', marginTop: 2 },
       }}

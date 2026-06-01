@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { supabase } from '@/lib/supabase'
 import { ThemeProvider, useTheme } from '@/lib/ThemeContext'
 import { LanguageProvider } from '@/lib/LanguageContext'
@@ -43,10 +44,12 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <RootLayoutInner />
-      </ThemeProvider>
-    </LanguageProvider>
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <RootLayoutInner />
+        </ThemeProvider>
+      </LanguageProvider>
+    </SafeAreaProvider>
   )
 }
