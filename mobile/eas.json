@@ -4,13 +4,7 @@
     "promptToConfigurePushNotifications": false
   },
   "build": {
-    "base": {
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://iuwximhtkztnuscpfutn.supabase.co"
-      }
-    },
     "development": {
-      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
