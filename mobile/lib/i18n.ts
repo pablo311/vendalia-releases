@@ -209,6 +209,11 @@ const translations = {
     language: 'Language',
     companyPlaceholder: 'Your company name',
     namePlaceholder: 'Your name',
+    legal: 'Legal',
+    privacyPolicy: 'Privacy Policy',
+    termsOfUse: 'Terms of Use',
+    deleteAccount: 'Delete account',
+    deleteAccountMsg: 'To delete your account send an email to privacidad@vendalia.com.py',
   },
 }
 
