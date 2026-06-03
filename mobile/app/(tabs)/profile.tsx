@@ -163,6 +163,43 @@ export default function ProfileScreen() {
               : <><Save size={16} color="#fff" strokeWidth={2} /><Text style={styles.saveBtnText}>{i18n('saveChanges')}</Text></>}
           </TouchableOpacity>
         </View>
+
+        {/* Legal */}
+        <View style={styles.legalSection}>
+          <Text style={[styles.legalTitle, { color: t.text2 }]}>{i18n('legal')}</Text>
+          <View style={[styles.legalCard, { backgroundColor: t.card, borderColor: t.border }]}>
+            <TouchableOpacity
+              style={styles.legalRow}
+              onPress={() => Linking.openURL('https://vendalia.com.py/privacy')}
+              activeOpacity={0.7}
+            >
+              <Shield size={16} color={t.brand} strokeWidth={1.8} />
+              <Text style={[styles.legalText, { color: t.text }]}>{i18n('privacyPolicy')}</Text>
+              <ChevronRight size={14} color={t.text4} strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={[styles.legalDivider, { backgroundColor: t.border }]} />
+            <TouchableOpacity
+              style={styles.legalRow}
+              onPress={() => Linking.openURL('https://vendalia.com.py/terms')}
+              activeOpacity={0.7}
+            >
+              <FileText size={16} color={t.brand} strokeWidth={1.8} />
+              <Text style={[styles.legalText, { color: t.text }]}>{i18n('termsOfUse')}</Text>
+              <ChevronRight size={14} color={t.text4} strokeWidth={1.8} />
+            </TouchableOpacity>
+            <View style={[styles.legalDivider, { backgroundColor: t.border }]} />
+            <TouchableOpacity
+              style={styles.legalRow}
+              onPress={() => Alert.alert(i18n('deleteAccount'), i18n('deleteAccountMsg'))}
+              activeOpacity={0.7}
+            >
+              <Trash2 size={16} color="#ef4444" strokeWidth={1.8} />
+              <Text style={[styles.legalText, { color: '#ef4444' }]}>{i18n('deleteAccount')}</Text>
+              <ChevronRight size={14} color={t.text4} strokeWidth={1.8} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={{ height: 32 }} />
       </ScrollView>
     </SafeAreaView>
