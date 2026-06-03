@@ -229,4 +229,10 @@ const styles = StyleSheet.create({
   segmentRow: { flexDirection: 'row', borderWidth: 1, borderRadius: 14, overflow: 'hidden' },
   segmentOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 10 },
   segmentText: { fontSize: 12, fontWeight: '600' },
+  legalSection: { paddingHorizontal: 20, marginTop: 24 },
+  legalTitle: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  legalCard: { borderRadius: 16, borderWidth: 1, overflow: 'hidden' },
+  legalRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  legalText: { flex: 1, fontSize: 14, fontWeight: '500' },
+  legalDivider: { height: 1, marginLeft: 44 },
 })
