@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  TextInput, ActivityIndicator, Alert,
+  TextInput, ActivityIndicator, Alert, Linking,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useTheme } from '@/lib/ThemeContext'
 import { useLanguage } from '@/lib/LanguageContext'
 import type { Profile } from '@/lib/types'
-import { LogOut, Save, Store, TrendingUp, Sun, Moon, Smartphone } from 'lucide-react-native'
+import { LogOut, Save, Store, TrendingUp, Sun, Moon, Smartphone, Shield, FileText, Trash2, ChevronRight } from 'lucide-react-native'
 
 export default function ProfileScreen() {
   const { t, mode, setMode } = useTheme()
