@@ -16,7 +16,7 @@ export default function TermsPage() {
         </Link>
 
         <h1 className="text-4xl font-extrabold text-gray-900 font-heading mb-3">Términos de Uso</h1>
-        <p className="text-sm text-gray-400 mb-10">Última actualización: 31 de mayo de 2025</p>
+        <p className="text-sm text-gray-400 mb-10">Última actualización: 3 de junio de 2026</p>
 
         <div className="prose prose-gray max-w-none space-y-8 text-gray-700 text-[15px] leading-relaxed">
           <section>
