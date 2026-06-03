@@ -50,7 +50,9 @@
       "router": {},
       "eas": {
         "projectId": "2169ea0d-b0a1-4177-b163-bb5e9b8b8335"
-      }
+      },
+      "privacyPolicyUrl": "https://vendalia.com.py/privacy",
+      "termsOfUseUrl": "https://vendalia.com.py/terms"
     }
   }
 }
