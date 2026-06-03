@@ -58,6 +58,28 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-3">7. Cookies</h2>
             <p>Utilizamos cookies de sesión necesarias para el funcionamiento de la plataforma. No utilizamos cookies de seguimiento de terceros con fines publicitarios.</p>
           </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">8. Eliminación de datos</h2>
+            <p>Podés solicitar la eliminación permanente de tu cuenta y todos los datos asociados (perfil, listados, mensajes e historial de consultas) en cualquier momento.</p>
+            <p className="mt-3">Para eliminar tu cuenta:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li>Enviá un email a <a href="mailto:privacidad@vendalia.com.py" className="text-purple-500 hover:underline">privacidad@vendalia.com.py</a> con el asunto "Eliminar cuenta"</li>
+              <li>O contactanos por <a href="mailto:soporte@vendalia.com.py" className="text-purple-500 hover:underline">soporte@vendalia.com.py</a></li>
+            </ul>
+            <p className="mt-3">Procesamos tu solicitud en un máximo de 30 días hábiles. Algunos datos pueden retenerse por obligaciones legales (ej: registros de facturación).</p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-bold text-gray-900 mb-3">9. Datos recopilados por la app móvil</h2>
+            <p>La aplicación móvil de Vendalia (Android) recopila los siguientes datos:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li><strong>Datos de cuenta:</strong> nombre, email, teléfono, empresa, foto de perfil</li>
+              <li><strong>Datos de actividad:</strong> listados visitados, consultas enviadas, mensajes</li>
+              <li><strong>Datos del dispositivo:</strong> identificador de sesión (almacenado de forma segura)</li>
+            </ul>
+            <p className="mt-3">No compartimos estos datos con terceros con fines publicitarios ni de analítica externa.</p>
+          </section>
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-100">
