@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const PROTECTED = ['/dashboard', '/listings/new']
-const ONBOARDING_BYPASS = ['/onboarding', '/auth', '/landing', '/api']
+const PROTECTED = ['/dashboard', '/listings/new', '/admin']
+const ADMIN_ONLY = ['/admin']
+const ONBOARDING_BYPASS = ['/onboarding', '/auth', '/landing', '/api', '/admin']
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -38,7 +39,22 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 2. Usuario logueado: verificar onboarding completo
+  // 2. Rutas admin: verificar rol admin
+  if (user && ADMIN_ONLY.some((p) => pathname.startsWith(p))) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
+  }
+
+  // 3. Usuario logueado: verificar onboarding completo
   //    (no aplicar en rutas de bypass ni en la propia ruta /onboarding)
   if (
     user &&

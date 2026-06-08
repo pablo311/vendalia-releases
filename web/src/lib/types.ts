@@ -1,4 +1,4 @@
-export type UserRole = 'investor' | 'seller'
+export type UserRole = 'investor' | 'seller' | 'admin'
 
 export type ListingStatus = 'active' | 'sold' | 'paused'
 
