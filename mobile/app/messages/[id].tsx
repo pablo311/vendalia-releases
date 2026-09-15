@@ -47,8 +47,8 @@ export default function ChatScreen() {
         .from('inquiries')
         .select(`id, message,
           listings(title, is_confidential, category),
-          sender:profiles!inquiries_sender_id_fkey(id, full_name, email),
-          receiver:profiles!inquiries_receiver_id_fkey(id, full_name, email)`)
+          sender:profiles!inquiries_sender_id_fkey(id, full_name),
+          receiver:profiles!inquiries_receiver_id_fkey(id, full_name)`)
         .eq('id', inquiryId)
         .single()
 
@@ -57,7 +57,7 @@ export default function ChatScreen() {
         const receiver = inquiry.receiver as any
         const listing = inquiry.listings as any
         const other = sender?.id === user.id ? receiver : sender
-        setOtherName(other?.full_name ?? other?.email ?? 'Usuario')
+        setOtherName(other?.full_name || 'Usuario')
         setListingTitle(listing?.is_confidential ? 'Negocio confidencial' : (listing?.title ?? ''))
       }
 

@@ -18,7 +18,7 @@ export default async function AdminListingsPage() {
 
   const { data: listings } = await supabase
     .from('listings')
-    .select('*, profiles(full_name, email)')
+    .select('*, profiles(full_name)')
     .order('created_at', { ascending: false })
     .limit(100)
 
@@ -39,10 +39,10 @@ export default async function AdminListingsPage() {
             </tr>
           </thead>
           <tbody>
-            {((listings ?? []) as (Listing & { profiles: { full_name: string | null; email: string } | null })[]).map((l) => (
+            {((listings ?? []) as (Listing & { profiles: { full_name: string | null } | null })[]).map((l) => (
               <tr key={l.id} className="border-b border-gray-800 last:border-0 hover:bg-gray-800/50 transition-colors">
                 <td className="px-5 py-3 text-gray-200 font-medium max-w-[200px] truncate">{l.title}</td>
-                <td className="px-5 py-3 text-gray-400 text-xs">{l.profiles?.full_name ?? l.profiles?.email ?? '—'}</td>
+                <td className="px-5 py-3 text-gray-400 text-xs">{l.profiles?.full_name || '—'}</td>
                 <td className="px-5 py-3 text-gray-400 text-xs">{CATEGORY_LABELS[l.category]}</td>
                 <td className="px-5 py-3 text-gray-300 font-medium">{formatCurrency(l.price)}</td>
                 <td className="px-5 py-3">

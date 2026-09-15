@@ -26,9 +26,10 @@ export default function ProfileScreen() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+      // Email y teléfono no se exponen en profiles: el perfil propio completo sale de la RPC
+      const { data } = await supabase.rpc('get_my_profile').single<Profile>()
       if (data) {
-        setProfile(data as Profile)
+        setProfile(data)
         setFullName(data.full_name ?? '')
         setPhone(data.phone_number ?? '')
         setCompany(data.company_name ?? '')

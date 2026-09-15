@@ -124,7 +124,7 @@ export default async function ListingDetailPage({
 
   const { data: listing } = await supabase
     .from('listings')
-    .select('*, profiles(full_name, email, role)')
+    .select('*, profiles(full_name, role)')
     .eq('id', id)
     .eq('status', 'active')
     .single()

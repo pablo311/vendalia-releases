@@ -29,7 +29,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('full_name, role')
     .eq('id', user.id)
     .single()
 
@@ -45,7 +45,7 @@ export default async function DashboardPage() {
   const { data: inquiries } = isSeller
     ? await supabase
         .from('inquiries')
-        .select('*, listings(id, title, is_confidential), sender:profiles!inquiries_sender_id_fkey(full_name, email)')
+        .select('*, listings(id, title, is_confidential), sender:profiles!inquiries_sender_id_fkey(full_name)')
         .eq('receiver_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10)
@@ -298,12 +298,12 @@ export default async function DashboardPage() {
                     className="flex items-start gap-3 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm px-4 py-3.5 hover:shadow-md transition-shadow cursor-pointer">
                     <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0"
                       style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}>
-                      {(other?.full_name ?? other?.email ?? '?')[0].toUpperCase()}
+                      {(other?.full_name || '?')[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
                         <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                          {other?.full_name ?? other?.email ?? 'Usuario'}
+                          {other?.full_name || 'Usuario'}
                         </p>
                         {!inq.is_read && isSeller && (
                           <span className="w-2 h-2 rounded-full flex-shrink-0"

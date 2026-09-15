@@ -9,7 +9,7 @@ import {
   ArrowLeft, CheckCircle, AlertCircle, Loader2,
   TrendingUp, Store, ArrowRight
 } from 'lucide-react'
-import type { UserRole } from '@/lib/types'
+import type { Profile, UserRole } from '@/lib/types'
 
 type Section = 'profile' | 'password'
 
@@ -38,11 +38,10 @@ export default function ProfilePage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/auth/login'); return }
       setEmail(user.email ?? '')
+      // El teléfono no se expone en profiles: el perfil propio completo sale de la RPC
       supabase
-        .from('profiles')
-        .select('full_name, phone_number, company_name, bio, role')
-        .eq('id', user.id)
-        .single()
+        .rpc('get_my_profile')
+        .single<Profile>()
         .then(({ data }) => {
           if (data) {
             setFullName(data.full_name ?? '')

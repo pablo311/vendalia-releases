@@ -42,8 +42,8 @@ export default function ListingDetailScreen() {
 
       if (listingData) {
         const { data: seller } = await supabase
-          .from('profiles').select('full_name, email').eq('id', listingData.user_id).single()
-        setSellerName(seller?.full_name ?? seller?.email ?? 'Vendedor')
+          .from('profiles').select('full_name').eq('id', listingData.user_id).single()
+        setSellerName(seller?.full_name || 'Vendedor')
       }
       setLoading(false)
     }

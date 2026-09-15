@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { MessageCircle, ChevronRight, ArrowLeft } from 'lucide-react'
 
-type ConvoParticipant = { id: string; full_name: string | null; email: string | null } | null
+type ConvoParticipant = { id: string; full_name: string | null } | null
 type ConvoListing = { id: string; title: string; is_confidential: boolean; category: string } | null
 type MsgRow = { id: string; inquiry_id: string; content: string; created_at: string; sender_id: string; is_read: boolean }
 type EnrichedInquiry = {
@@ -37,8 +37,8 @@ export default async function MessagesPage() {
     .select(`
       id, message, created_at, listing_id,
       listings(id, title, is_confidential, category),
-      sender:profiles!inquiries_sender_id_fkey(id, full_name, email),
-      receiver:profiles!inquiries_receiver_id_fkey(id, full_name, email)
+      sender:profiles!inquiries_sender_id_fkey(id, full_name),
+      receiver:profiles!inquiries_receiver_id_fkey(id, full_name)
     `)
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false })
@@ -118,7 +118,7 @@ export default async function MessagesPage() {
                   className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0 relative"
                   style={{ background: 'linear-gradient(135deg, #a855f7, #22d3ee)' }}
                 >
-                  {(other?.full_name ?? other?.email ?? '?')[0].toUpperCase()}
+                  {(other?.full_name || '?')[0].toUpperCase()}
                   {inq.unread > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] font-bold flex items-center justify-center">
                       {inq.unread > 9 ? '9+' : inq.unread}
@@ -130,7 +130,7 @@ export default async function MessagesPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline justify-between gap-2 mb-0.5">
                     <p className={`text-sm font-semibold truncate ${inq.unread > 0 ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                      {other?.full_name ?? other?.email ?? 'Usuario'}
+                      {other?.full_name || 'Usuario'}
                     </p>
                     <p className="text-[11px] text-gray-400 dark:text-gray-500 flex-shrink-0">
                       {new Date(lastDate).toLocaleDateString('es-PY', { day: '2-digit', month: 'short' })}

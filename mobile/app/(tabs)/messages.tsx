@@ -30,8 +30,8 @@ export default function MessagesScreen() {
       .from('inquiries')
       .select(`id, message, created_at,
         listings(title, is_confidential),
-        sender:profiles!inquiries_sender_id_fkey(id, full_name, email),
-        receiver:profiles!inquiries_receiver_id_fkey(id, full_name, email)`)
+        sender:profiles!inquiries_sender_id_fkey(id, full_name),
+        receiver:profiles!inquiries_receiver_id_fkey(id, full_name)`)
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order('created_at', { ascending: false })
 
@@ -43,7 +43,7 @@ export default function MessagesScreen() {
         .from('chat_messages').select('id', { count: 'exact', head: true })
         .eq('inquiry_id', inq.id).eq('is_read', false).neq('sender_id', user.id)
       const other = inq.sender?.id === user.id ? inq.receiver : inq.sender
-      const otherName = other?.full_name ?? other?.email ?? 'Usuario'
+      const otherName = other?.full_name || 'Usuario'
       return {
         id: inq.id, otherName,
         listingTitle: inq.listings?.is_confidential ? 'Negocio confidencial' : (inq.listings?.title ?? ''),

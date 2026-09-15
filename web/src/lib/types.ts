@@ -50,7 +50,7 @@ export interface Inquiry {
   message: string
   created_at: string
   listings?: Pick<Listing, 'title' | 'is_confidential'>
-  sender?: Pick<Profile, 'full_name' | 'email'>
+  sender?: Pick<Profile, 'full_name'>
 }
 
 export const CATEGORY_LABELS: Record<ListingCategory, string> = {

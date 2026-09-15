@@ -33,7 +33,7 @@ export default function DashboardScreen() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setLoading(false); return }
     const [{ data: prof }, { data: listingsData }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.rpc('get_my_profile').single(),
       supabase.from('listings').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     ])
     setProfile(prof as Profile)

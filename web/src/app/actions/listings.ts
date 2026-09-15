@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import type { ListingCategory, ListingStatus } from '@/lib/types'
 import { sendNewInquiryEmail, sendNewMessageEmail } from '@/lib/email'
+import { getContactEmail } from '@/lib/supabase/admin'
 
 export async function createListing(formData: FormData) {
   const supabase = await createClient()
@@ -136,18 +137,19 @@ export async function sendInquiry(formData: FormData) {
 
   // Fire email notification (non-blocking)
   try {
-    const [senderRes, receiverRes, listingRes] = await Promise.all([
-      supabase.from('profiles').select('full_name, email').eq('id', user.id).single(),
-      supabase.from('profiles').select('full_name, email').eq('id', receiverId).single(),
+    const [senderRes, receiverRes, listingRes, sellerEmail] = await Promise.all([
+      supabase.from('profiles').select('full_name').eq('id', user.id).single(),
+      supabase.from('profiles').select('full_name').eq('id', receiverId).single(),
       supabase.from('listings').select('title, is_confidential, category').eq('id', listingId).single(),
+      getContactEmail(receiverId),
     ])
-    if (receiverRes.data?.email && inquiry) {
+    if (sellerEmail && inquiry) {
       const listingTitle = listingRes.data?.is_confidential
         ? `Negocio confidencial`
         : (listingRes.data?.title ?? 'Negocio en Vendalia')
       await sendNewInquiryEmail({
-        sellerEmail: receiverRes.data.email,
-        sellerName: receiverRes.data.full_name ?? 'Vendedor',
+        sellerEmail,
+        sellerName: receiverRes.data?.full_name ?? 'Vendedor',
         buyerName: senderRes.data?.full_name ?? user.email ?? 'Inversor',
         listingTitle,
         message: message.trim(),
@@ -182,24 +184,25 @@ export async function sendChatMessage(inquiryId: string, content: string) {
       .select(`
         id, listing_id,
         listings(title, is_confidential),
-        sender:profiles!inquiries_sender_id_fkey(id, full_name, email),
-        receiver:profiles!inquiries_receiver_id_fkey(id, full_name, email)
+        sender:profiles!inquiries_sender_id_fkey(id, full_name),
+        receiver:profiles!inquiries_receiver_id_fkey(id, full_name)
       `)
       .eq('id', inquiryId)
       .single()
 
     if (inq) {
-      type ParticipantRow = { id: string; full_name: string | null; email: string | null }
+      type ParticipantRow = { id: string; full_name: string | null }
       type ListingRow = { title: string; is_confidential: boolean }
       const sender = (inq.sender as unknown) as ParticipantRow | null
       const receiver = (inq.receiver as unknown) as ParticipantRow | null
       const other = sender?.id === user.id ? receiver : sender
       const me = sender?.id === user.id ? sender : receiver
       const listing = (inq.listings as unknown) as ListingRow | null
+      const recipientEmail = other ? await getContactEmail(other.id) : null
 
-      if (other?.email) {
+      if (other && recipientEmail) {
         await sendNewMessageEmail({
-          recipientEmail: other.email,
+          recipientEmail,
           recipientName: other.full_name ?? 'Usuario',
           senderName: me?.full_name ?? user.email ?? 'Usuario',
           listingTitle: listing?.is_confidential ? 'Negocio confidencial' : (listing?.title ?? 'Negocio'),

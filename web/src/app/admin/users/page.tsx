@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/server'
+import type { Profile } from '@/lib/types'
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
 
-  const { data: users } = await supabase
-    .from('profiles')
-    .select('id, email, full_name, role, onboarding_done, created_at')
-    .order('created_at', { ascending: false })
+  // Los emails solo salen de esta RPC, que rechaza a quien no es admin
+  const { data } = await supabase
+    .rpc('admin_list_profiles')
     .limit(100)
+  const users = data as Profile[] | null
 
   const ROLE_BADGE: Record<string, string> = {
     investor: 'bg-blue-900 text-blue-300',

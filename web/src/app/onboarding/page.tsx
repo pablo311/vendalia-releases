@@ -7,7 +7,7 @@ import {
   TrendingUp, Store, User, Phone, Building2,
   FileText, CheckCircle, ArrowRight, Loader2
 } from 'lucide-react'
-import type { UserRole } from '@/lib/types'
+import type { Profile, UserRole } from '@/lib/types'
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 function validatePhone(phone: string) {
@@ -57,11 +57,10 @@ export default function OnboardingPage() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.push('/auth/login'); return }
+      // El teléfono no se expone en profiles: el perfil propio completo sale de la RPC
       supabase
-        .from('profiles')
-        .select('full_name, role, phone_number, company_name, bio, onboarding_done')
-        .eq('id', user.id)
-        .single()
+        .rpc('get_my_profile')
+        .single<Profile>()
         .then(({ data }) => {
           if (data?.onboarding_done) { router.push('/dashboard'); return }
           if (data?.full_name) setFullName(data.full_name)

@@ -22,8 +22,8 @@ export default async function ChatPage({
     .select(`
       id, message, created_at,
       listings(id, title, is_confidential, category, images),
-      sender:profiles!inquiries_sender_id_fkey(id, full_name, email),
-      receiver:profiles!inquiries_receiver_id_fkey(id, full_name, email)
+      sender:profiles!inquiries_sender_id_fkey(id, full_name),
+      receiver:profiles!inquiries_receiver_id_fkey(id, full_name)
     `)
     .eq('id', inquiryId)
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
@@ -36,7 +36,7 @@ export default async function ChatPage({
   const listing = inquiry.listings as any
 
   const other = sender?.id === user.id ? receiver : sender
-  const otherName = other?.full_name ?? other?.email ?? 'Usuario'
+  const otherName = other?.full_name || 'Usuario'
 
   const displayTitle = listing?.is_confidential
     ? `Negocio en ${CATEGORY_LABELS[listing.category as keyof typeof CATEGORY_LABELS] ?? listing.category}`
