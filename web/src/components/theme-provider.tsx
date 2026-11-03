@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -13,22 +13,38 @@ export function useTheme() {
   return useContext(ThemeContext)
 }
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
+// El tema vive en localStorage y en la clase `dark` del <html>: un store
+// externo. useSyncExternalStore lo lee sin un setState dentro de un efecto,
+// y en el servidor rinde 'light' para que el HTML sea estable.
+const oyentes = new Set<() => void>()
 
-  useEffect(() => {
-    const stored = localStorage.getItem('theme') as Theme | null
-    const preferred = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-    const initial = stored ?? preferred
-    setTheme(initial)
-    document.documentElement.classList.toggle('dark', initial === 'dark')
-  }, [])
+function temaActual(): Theme {
+  const stored = localStorage.getItem('theme')
+  if (stored === 'dark' || stored === 'light') return stored
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+function suscribir(cb: () => void) {
+  oyentes.add(cb)
+  return () => { oyentes.delete(cb) }
+}
+
+function guardarTema(next: Theme) {
+  localStorage.setItem('theme', next)
+  document.documentElement.classList.toggle('dark', next === 'dark')
+  oyentes.forEach((cb) => cb())
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const theme = useSyncExternalStore(suscribir, temaActual, () => 'light' as Theme)
+
+  // Mantiene la clase del <html> alineada con lo leído, también en la primera carga.
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+  }
 
   function toggle() {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    localStorage.setItem('theme', next)
-    document.documentElement.classList.toggle('dark', next === 'dark')
+    guardarTema(theme === 'dark' ? 'light' : 'dark')
   }
 
   return (

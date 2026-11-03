@@ -1,0 +1,47 @@
+name: Bug
+description: Algo que anda mal en la app (mobile), la web o la base (Supabase). Se arregla reproduciéndolo primero.
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: donde
+    attributes:
+      label: Dónde
+      options:
+        - App (mobile)
+        - Web
+        - Base de datos (Supabase, RLS)
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducirlo
+      description: Numerados, con el rol (visitante, vendedor, inversor, admin) y el dispositivo.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué tenía que pasar
+    validations:
+      required: true
+  - type: textarea
+    id: obtenido
+    attributes:
+      label: Qué pasó
+      description: Mensaje, captura o respuesta. Sin claves, tokens ni datos personales de usuarios.
+    validations:
+      required: true
+  - type: checkboxes
+    id: tipo
+    attributes:
+      label: Toca
+      options:
+        - label: Datos de otro usuario o permisos (RLS)
+        - label: Login, registro o sesión
+        - label: Pagos o mensajes
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de éxito
+      description: Lo que se verifica para dar el arreglo por terminado. Si lo dejás vacío, se proponen antes de empezar.

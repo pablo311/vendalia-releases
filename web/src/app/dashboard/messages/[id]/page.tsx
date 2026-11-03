@@ -31,9 +31,11 @@ export default async function ChatPage({
 
   if (!inquiry) notFound()
 
-  const sender = inquiry.sender as any
-  const receiver = inquiry.receiver as any
-  const listing = inquiry.listings as any
+  type Persona = { id: string; full_name: string | null } | null
+  type Anuncio = { id: string; title: string; is_confidential: boolean; category: string; images: string[] | null } | null
+  const sender = inquiry.sender as unknown as Persona
+  const receiver = inquiry.receiver as unknown as Persona
+  const listing = inquiry.listings as unknown as Anuncio
 
   const other = sender?.id === user.id ? receiver : sender
   const otherName = other?.full_name || 'Usuario'
