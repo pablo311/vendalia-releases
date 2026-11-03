@@ -1,0 +1,32 @@
+name: Pedido de cambio
+description: Un cambio o una función nueva, con criterios de éxito que se puedan verificar.
+labels: ["pedido"]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué se pide y para quién
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de éxito
+      description: De 3 a 5, verificables con un comando, una prueba o una pantalla. Sin criterios el trabajo no arranca.
+      placeholder: |
+        - [ ] Un inversor sin NDA firmado no ve el nombre del negocio confidencial
+        - [ ] La prueba de supabase/tests/security.test.mjs cubre la política nueva
+    validations:
+      required: true
+  - type: checkboxes
+    id: riesgo
+    attributes:
+      label: Toca
+      options:
+        - label: Políticas RLS o datos personales (lleva migración en supabase/ y prueba en supabase/tests/)
+        - label: Pantallas de la app (pasa por el pipeline de UX de mobile/ con design-qa)
+        - label: Variables de Vercel, Expo o Supabase
+  - type: textarea
+    id: fuera
+    attributes:
+      label: Fuera de alcance

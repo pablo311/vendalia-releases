@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ const PRICE_RANGES = [
 export function FeedFilters() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const q = searchParams.get('q') ?? ''
   const category = searchParams.get('category') ?? 'all'
@@ -52,8 +53,8 @@ export function FeedFilters() {
           defaultValue={q}
           onChange={(e) => {
             const val = e.target.value
-            clearTimeout((window as any).__searchTimer)
-            ;(window as any).__searchTimer = setTimeout(
+            clearTimeout(searchTimer.current)
+            searchTimer.current = setTimeout(
               () => updateParams({ q: val }),
               400
             )

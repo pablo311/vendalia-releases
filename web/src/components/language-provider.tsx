@@ -1,5 +1,5 @@
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 import translations, { type Lang, type TranslationKey } from '@/lib/i18n'
 
 interface LanguageContextValue {
@@ -14,18 +14,28 @@ const LanguageContext = createContext<LanguageContextValue>({
   t: (key) => translations.es[key],
 })
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('es')
+// El idioma vive en localStorage: un store externo que se lee con
+// useSyncExternalStore en vez de un setState dentro de un efecto. En el
+// servidor rinde 'es'.
+const oyentes = new Set<() => void>()
 
-  useEffect(() => {
-    const stored = localStorage.getItem('lang') as Lang | null
-    if (stored === 'es' || stored === 'en') setLangState(stored)
-  }, [])
+function idiomaActual(): Lang {
+  const stored = localStorage.getItem('lang')
+  return stored === 'en' ? 'en' : 'es'
+}
+
+function suscribir(cb: () => void) {
+  oyentes.add(cb)
+  return () => { oyentes.delete(cb) }
+}
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const lang = useSyncExternalStore(suscribir, idiomaActual, () => 'es' as Lang)
 
   function setLang(l: Lang) {
-    setLangState(l)
     localStorage.setItem('lang', l)
     document.cookie = `lang=${l}; path=/; max-age=31536000`
+    oyentes.forEach((cb) => cb())
   }
 
   function t(key: TranslationKey): string {

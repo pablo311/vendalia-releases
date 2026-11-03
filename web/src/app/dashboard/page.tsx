@@ -9,6 +9,17 @@ import {
   CheckCircle, Clock, PauseCircle, ShoppingBag
 } from 'lucide-react'
 
+type Consulta = {
+  id: string
+  listing_id: string
+  message: string
+  created_at: string
+  is_read: boolean
+  listings: { id: string; title: string; is_confidential: boolean } | null
+  sender?: { full_name: string | null } | null
+  receiver?: { full_name: string | null } | null
+}
+
 function formatCurrency(amount: number) {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
   if (amount >= 1_000) return `$${Math.round(amount / 1_000)}K`
@@ -290,7 +301,7 @@ export default async function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {(inquiries as any[]).map((inq) => {
+              {(inquiries as unknown as Consulta[]).map((inq) => {
                 const other = isSeller ? inq.sender : inq.receiver
                 const listingTitle = inq.listings?.is_confidential ? 'Negocio confidencial' : inq.listings?.title
                 return (

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { CATEGORIES, type Listing } from '@/lib/types'
+import { CATEGORIES, type Listing, type ListingStatus } from '@/lib/types'
 import { Upload, X, Lock, Unlock, Loader2 } from 'lucide-react'
 
 interface ListingFormProps {
@@ -77,8 +77,8 @@ export function ListingForm({ listing, userId }: ListingFormProps) {
       } else {
         await createListing(formData)
       }
-    } catch (err: any) {
-      setError(err.message ?? 'Error al guardar el anuncio.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar el anuncio.')
       setSubmitting(false)
     }
   }
@@ -220,7 +220,7 @@ export function ListingForm({ listing, userId }: ListingFormProps) {
       {isEdit && (
         <div className="space-y-2">
           <Label>Estado del anuncio</Label>
-          <Select value={status} onValueChange={(v) => v && setStatus(v as any)}>
+          <Select value={status} onValueChange={(v) => v && setStatus(v as ListingStatus)}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>

@@ -1,0 +1,68 @@
+name: Verificar
+
+# Lo que tiene que pasar en cada PR antes de mergear. El build de Android
+# (build-android.yml) necesita el secret EXPO_TOKEN y no corre en PRs de
+# forks; esto corre siempre y no necesita secretos.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    name: Mobile — tsc
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  web:
+    name: Web — lint y build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # El build no necesita las variables de Supabase ni de Resend: los
+      # clientes se crean recién al atender un pedido.
+      - run: npm run build
+
+  supabase:
+    name: Supabase — pruebas de RLS
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: supabase/package-lock.json
+      - run: npm ci
+      - run: npm test

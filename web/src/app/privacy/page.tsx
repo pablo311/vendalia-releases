@@ -64,7 +64,7 @@ export default function PrivacyPage() {
             <p>Podés solicitar la eliminación permanente de tu cuenta y todos los datos asociados (perfil, listados, mensajes e historial de consultas) en cualquier momento.</p>
             <p className="mt-3">Para eliminar tu cuenta:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
-              <li>Enviá un email a <a href="mailto:privacidad@vendalia.com.py" className="text-purple-500 hover:underline">privacidad@vendalia.com.py</a> con el asunto "Eliminar cuenta"</li>
+              <li>Enviá un email a <a href="mailto:privacidad@vendalia.com.py" className="text-purple-500 hover:underline">privacidad@vendalia.com.py</a> con el asunto &ldquo;Eliminar cuenta&rdquo;</li>
               <li>O contactanos por <a href="mailto:soporte@vendalia.com.py" className="text-purple-500 hover:underline">soporte@vendalia.com.py</a></li>
             </ul>
             <p className="mt-3">Procesamos tu solicitud en un máximo de 30 días hábiles. Algunos datos pueden retenerse por obligaciones legales (ej: registros de facturación).</p>
