@@ -72,7 +72,8 @@ Actualizar status: `echo "FASE2_COMPLETA" > _workspace/00_status.md`
 **Input:** `_workspace/01_audit_summary.md` + `_workspace/02_changes_*.md` + archivos modificados  
 **Output:** `_workspace/03_qa_report.md`
 
-Si QA rechaza → volver al ui-implementor con items específicos → re-QA.  
+design-qa termina con `DONE` o con un solo próximo pedido; sin `DONE` no hay build.  
+Si QA rechaza → volver al ui-implementor con su próximo pedido → re-QA.  
 Máximo 2 ciclos de corrección antes de escalar al usuario.
 
 Actualizar status: `echo "FASE3_COMPLETA" > _workspace/00_status.md`
